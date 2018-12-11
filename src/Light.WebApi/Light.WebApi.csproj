@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
+    <PackageReference Include="FluentCache.Microsoft.Extensions.Caching.Memory" Version="4.0.0.2" />
+    <PackageReference Include="FluentCache.Microsoft.Extensions.Caching.Redis" Version="4.0.0.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Attributes\" />
+    <Folder Include="Filters\" />
+    <Folder Include="DataModel\" />
+    <Folder Include="Exception\" />
+    <Folder Include="Extensions\" />
+    <Folder Include="Interface\" />
+    <Folder Include="Options\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Class1.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="SR.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>SR.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="SR.Designer.cs">
+      <DependentUpon>SR.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+</Project>

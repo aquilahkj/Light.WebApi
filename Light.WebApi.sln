@@ -1,0 +1,29 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Light.WebApi", "src\Light.WebApi\Light.WebApi.csproj", "{EA20B24D-F4BE-48CB-997A-DB051A993936}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{B192BB62-EBEB-4B49-8810-AC4680FD4978}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Light.WebApi.Client", "src\Light.WebApi.Client\Light.WebApi.Client.csproj", "{11649D1E-2CE0-4390-A560-5E0A71B15EAF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EA20B24D-F4BE-48CB-997A-DB051A993936}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA20B24D-F4BE-48CB-997A-DB051A993936}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA20B24D-F4BE-48CB-997A-DB051A993936}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA20B24D-F4BE-48CB-997A-DB051A993936}.Release|Any CPU.Build.0 = Release|Any CPU
+		{11649D1E-2CE0-4390-A560-5E0A71B15EAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11649D1E-2CE0-4390-A560-5E0A71B15EAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11649D1E-2CE0-4390-A560-5E0A71B15EAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11649D1E-2CE0-4390-A560-5E0A71B15EAF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{EA20B24D-F4BE-48CB-997A-DB051A993936} = {B192BB62-EBEB-4B49-8810-AC4680FD4978}
+		{11649D1E-2CE0-4390-A560-5E0A71B15EAF} = {B192BB62-EBEB-4B49-8810-AC4680FD4978}
+	EndGlobalSection
+EndGlobal
