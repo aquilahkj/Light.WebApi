@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>2.0</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <data name="NotAllowNull">
+        <value>不允许为空</value>
+    </data>
+    <data name="DataLengthError">
+        <value>数据长度错误</value>
+    </data>
+    <data name="DataRangeError">
+        <value>数据值范围错误</value>
+    </data>
+    <data name="DataFormatError">
+        <value>数据格式错误</value>
+    </data>
+    <data name="TokenNotExists">
+        <value>Token不存在</value>
+    </data>
+    <data name="TokenFormatError">
+        <value>Token格式错误</value>
+    </data>
+    <data name="TokenError">
+        <value>Token解析错误</value>
+    </data>
+    <data name="UserTokenError">
+        <value>用户Token错误</value>
+    </data>
+    <data name="UserNotLogin">
+        <value>用户未登录</value>
+    </data>
+    <data name="UserHasLogin">
+        <value>用户已在其他地方登录</value>
+    </data>
+    <data name="UserNotPermission">
+        <value>用户无该操作权限</value>
+    </data>
+</root>
