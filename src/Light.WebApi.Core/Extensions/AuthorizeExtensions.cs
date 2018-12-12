@@ -12,7 +12,7 @@ namespace Light.WebApi.Core
 
         const string CLIENTID = "CLIENTID";
 
-        public static void SetUserInfo(this HttpContext context, string userName, string userId, string clientId)
+        public static void SetUserInfo(this HttpContext context, string userId, string userName, string clientId)
         {
             var claims = new Claim[] {
                 new Claim(UID, userId),
@@ -34,52 +34,29 @@ namespace Light.WebApi.Core
 
         public static string GetUserId(this HttpContext context)
         {
+            if (context.User == null) {
+                return null;
+            }
             var claim = context.User.FindFirst(x => x.Type == UID);
             return claim?.Value;
         }
 
         public static string GetUserName(this HttpContext context)
         {
+            if (context.User == null) {
+                return null;
+            }
             var claim = context.User.FindFirst(x => x.Type == USERNAME);
             return claim?.Value;
         }
 
         public static string GetClientId(this HttpContext context)
         {
+            if (context.User == null) {
+                return null;
+            }
             var claim = context.User.FindFirst(x => x.Type == CLIENTID);
             return claim?.Value;
         }
-
-        //public static void SetUserName(this HttpContext context, string userName)
-        //{
-        //    context.Items[USERNAME] = userName;
-        //}
-
-
-        //public static void SetUserId(this HttpContext context, string userId)
-        //{
-        //    context.Items[UID] = userId;
-        //}
-
-        //public static void SetClientId(this HttpContext context, string clientId)
-        //{
-        //    context.Items[CLIENTID] = clientId;
-        //}
-
-        //public static string GetUserName(this HttpContext context)
-        //{
-        //    return context.Items.TryGetValue(USERNAME, out object value) ? value as string : null;
-        //}
-
-        //public static string GetUserId(this HttpContext context)
-        //{
-        //    return context.Items.TryGetValue(UID, out object value) ? value as string : null;
-        //}
-
-        //public static string GetClientId(this HttpContext context)
-        //{
-        //    return context.Items.TryGetValue(CLIENTID, out object value) ? value as string : null;
-        //}
-
     }
 }

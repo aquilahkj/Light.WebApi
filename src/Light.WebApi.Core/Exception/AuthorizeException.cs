@@ -2,14 +2,19 @@
 
 namespace Light.WebApi.Core
 {
-    public class AuthorizeException : Exception
+    public sealed class AuthorizeException : Exception
     {
-        public AuthorizeException()
-        {
+        readonly string token;
+
+        public string Token {
+            get {
+                return token;
+            }
         }
 
-        public AuthorizeException(string message) : base(message)
+        public AuthorizeException(string message, string token) : base(message)
         {
+            this.token = token;
         }
     }
 }

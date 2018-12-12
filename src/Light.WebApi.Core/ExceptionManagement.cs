@@ -4,33 +4,41 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace Light.WebApi.Core
 {
-    public class ExceptionManagement : IExceptionManagement
+    internal class ExceptionManagement : IExceptionManagement
     {
-        readonly Dictionary<Type, Func<ExceptionContext, Exception, ResultModel>> exceptionTypes;
-        readonly Dictionary<Type, int> exceptionCodes;
+        readonly Dictionary<Type, ExceptonTypeModel> exceptionTypes;
+        readonly Dictionary<Type, ExceptonCodeModel> exceptionCodes;
+        readonly bool enableLogger;
+
+        public bool EnableLogger {
+            get {
+                return enableLogger;
+            }
+        }
 
         public ExceptionManagement(ExceptionOptions options)
         {
             exceptionTypes = options.ExceptionTypes;
             exceptionCodes = options.ExceptionCodes;
+            enableLogger = options.EnableLogger;
         }
 
-        public bool TryGetExceptionTypeFunc(Type type, out Func<ExceptionContext, Exception, ResultModel> func)
+        public bool TryGetExceptionTypeFunc(Type type, out ExceptonTypeModel model)
         {
             if (exceptionTypes == null) {
-                func = null;
+                model = null;
                 return false;
             }
-            return exceptionTypes.TryGetValue(type, out func);
+            return exceptionTypes.TryGetValue(type, out model);
         }
 
-        public bool TryGetExceptionCode(Type type, out int errCode)
+        public bool TryGetExceptionCode(Type type, out ExceptonCodeModel model)
         {
             if (exceptionCodes == null) {
-                errCode = 0;
+                model = null;
                 return false;
             }
-            return exceptionCodes.TryGetValue(type, out errCode);
+            return exceptionCodes.TryGetValue(type, out model);
         }
 
     }

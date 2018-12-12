@@ -2,14 +2,28 @@
 
 namespace Light.WebApi.Core
 {
-    public class PermissionException : Exception
+    public sealed class PermissionException : Exception
     {
-        public PermissionException()
-        {
+        readonly string account;
+
+        public string Account {
+            get {
+                return account;
+            }
         }
 
-        public PermissionException(string message) : base(message)
+        readonly string action;
+
+        public string Action {
+            get {
+                return action;
+            }
+        }
+
+        public PermissionException(string message, string account, string action) : base(message)
         {
+            this.action = account;
+            this.action = action;
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace Light.WebApi.Core
 {
-    internal interface IAuthorizeManagement
+    public interface IAuthorizeManagement
     {
         string CreateUserToken(AccountAuthorizeInfo info);
         AccountAuthorizeInfo GetAuthorize(TokenInfo info);

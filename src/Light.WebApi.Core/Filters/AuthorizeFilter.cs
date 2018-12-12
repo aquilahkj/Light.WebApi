@@ -30,41 +30,41 @@ namespace Light.WebApi.Core
                     var tokens = request.Headers["x-token"];
                     string token;
                     if (tokens.Count == 0) {
-                        throw new AuthorizeException(SR.TokenNotExists);
+                        throw new AuthorizeException(SR.TokenNotExists, string.Empty);
                     }
                     else {
                         token = tokens[0];
                     }
                     if (string.IsNullOrEmpty(token) || token.Length < 20) {
-                        throw new AuthorizeException(SR.TokenFormatError);
+                        throw new AuthorizeException(SR.TokenFormatError, token);
                     }
                     var httpContext = context.HttpContext;
 
                     if (authorizeAttribute.Type == AuthorizeType.System) {
                         var client = authorize.GetSystemClientId(token);
                         if (client == null) {
-                            throw new AuthorizeException(SR.TokenError);
+                            throw new AuthorizeException(SR.TokenError, token);
                         }
                         httpContext.SetClientInfo(client);
                     }
                     else {
                         var tokenInfo = authorize.ParseUserToken(token);
                         if (tokenInfo == null) {
-                            throw new AuthorizeException(SR.UserTokenError);
+                            throw new AuthorizeException(SR.UserTokenError, token);
                         }
                         var account = authorize.GetAuthorize(tokenInfo);
                         if (account == null) {
-                            throw new AuthorizeException(SR.UserNotLogin);
+                            throw new AuthorizeException(SR.UserNotLogin, token);
                         }
                         if (account.Guid != tokenInfo.Guid) {
-                            throw new AuthorizeException(SR.UserHasLogin);
+                            throw new AuthorizeException(SR.UserHasLogin, token);
                         }
                         httpContext.SetUserInfo(account.LoginId, account.UserName, account.Client);
 
                         if (authorizeAttribute.Type == AuthorizeType.UserAction) {
                             var action = context.HttpContext.Request.Path;
                             if (!ValidUserPermission(account.Roles, action)) {
-                                throw new PermissionException(SR.UserNotPermission);
+                                throw new PermissionException(SR.UserNotPermission, account.UserName, action);
                             }
                         }
                     }

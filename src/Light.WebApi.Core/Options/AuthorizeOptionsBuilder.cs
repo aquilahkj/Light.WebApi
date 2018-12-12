@@ -17,7 +17,7 @@ namespace Light.WebApi.Core
 
         Type permissionType;
 
-        public void SetAuthroizeSettings(ApiSettings settings)
+        public void SetAuthroizeSettings(AuthorizeSettings settings)
         {
             if (settings == null) {
                 throw new ArgumentNullException(nameof(settings));

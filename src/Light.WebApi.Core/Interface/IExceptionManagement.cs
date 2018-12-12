@@ -5,7 +5,8 @@ namespace Light.WebApi.Core
 {
     public interface IExceptionManagement
     {
-        bool TryGetExceptionCode(Type type, out int errCode);
-        bool TryGetExceptionTypeFunc(Type type, out Func<ExceptionContext, Exception, ResultModel> func);
+        bool TryGetExceptionCode(Type type, out ExceptonCodeModel model);
+        bool TryGetExceptionTypeFunc(Type type, out ExceptonTypeModel model);
+        bool EnableLogger { get; }
     }
 }

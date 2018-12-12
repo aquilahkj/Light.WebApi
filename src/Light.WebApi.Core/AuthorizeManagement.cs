@@ -11,7 +11,6 @@ namespace Light.WebApi.Core
 
         private readonly ICacheAgent cache;
         private readonly IEncryptor encryptor;
-        private readonly IPermissionManagement configure;
         private readonly TimeSpan expiryTime;
 
         public AuthorizeManagement(AuthorizeOptions options)

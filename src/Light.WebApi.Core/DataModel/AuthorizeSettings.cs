@@ -1,7 +1,7 @@
 ﻿using System;
 namespace Light.WebApi.Core
 {
-    public class ApiSettings
+    public class AuthorizeSettings
     {
         public string CacheType { get; set; }
 

@@ -1,6 +1,6 @@
 ﻿namespace Light.WebApi.Core
 {
-    internal interface IPermissionManagement
+    public interface IPermissionManagement
     {
         bool ValidUserAuthorize(string role, string action);
 

@@ -10,39 +10,49 @@ namespace Light.WebApi.Core
         {
         }
 
-        readonly List<Tuple<Type, Func<ExceptionContext, Exception, ResultModel>>> typeList = new List<Tuple<Type, Func<ExceptionContext, Exception, ResultModel>>>();
+        readonly List<Tuple<Type, ExceptonTypeModel>> typeList = new List<Tuple<Type, ExceptonTypeModel>>();
 
-        readonly List<Tuple<Type, int>> codeList = new List<Tuple<Type, int>>();
+        readonly List<Tuple<Type, ExceptonCodeModel>> codeList = new List<Tuple<Type, ExceptonCodeModel>>();
 
-        bool exceptionLog;
+        bool exceptionLogger;
 
-        public void RegisterType<T>(Func<ExceptionContext, T, ResultModel> func) where T : Exception
+        public void RegisterType<T>(Func<ExceptionContext, T, ResultModel> func, bool logFullException = false, bool logPostData = false) where T : Exception
         {
             var nfunc = new Func<ExceptionContext, Exception, ResultModel>((arg1, arg2) => {
                 return func.Invoke(arg1, arg2 as T);
             });
-            var t = new Tuple<Type, Func<ExceptionContext, Exception, ResultModel>>(typeof(T), nfunc);
+            var model = new ExceptonTypeModel() {
+                ExceptionFunc = nfunc,
+                LogFullException = logFullException,
+                LogPostData = logPostData
+            };
+            var t = new Tuple<Type, ExceptonTypeModel>(typeof(T), model);
             typeList.Add(t);
         }
 
-        public void RegisterCode<T>(int errCode) where T : Exception
+        public void RegisterCode<T>(int errCode, bool logFullException = false, bool logPostData = false) where T : Exception
         {
-            var t = new Tuple<Type, int>(typeof(T), errCode);
+            var model = new ExceptonCodeModel() {
+                Code = errCode,
+                LogFullException = logFullException,
+                LogPostData = logPostData
+            };
+            var t = new Tuple<Type, ExceptonCodeModel>(typeof(T), model);
             codeList.Add(t);
         }
 
-        public void EnableExceptionLog()
+        public void EnableExceptionLogger()
         {
-            exceptionLog = true;
+            exceptionLogger = true;
         }
 
         internal ExceptionOptions Build()
         {
-            var typedict = new Dictionary<Type, Func<ExceptionContext, Exception, ResultModel>>();
+            var typedict = new Dictionary<Type, ExceptonTypeModel>();
             foreach (var item in typeList) {
                 typedict[item.Item1] = item.Item2;
             }
-            var codedict = new Dictionary<Type, int>();
+            var codedict = new Dictionary<Type, ExceptonCodeModel>();
             foreach (var item in codeList) {
                 if (typedict.ContainsKey(item.Item1)) {
                     continue;
@@ -52,7 +62,7 @@ namespace Light.WebApi.Core
             var options = new ExceptionOptions() {
                 ExceptionTypes = typedict,
                 ExceptionCodes = codedict,
-                ExceptionLog = exceptionLog
+                EnableLogger = exceptionLogger
             };
             return options;
         }
