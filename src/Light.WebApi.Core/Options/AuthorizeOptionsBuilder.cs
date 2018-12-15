@@ -17,6 +17,8 @@ namespace Light.WebApi.Core
 
         Type permissionType;
 
+        bool testMode = false;
+
         public void SetAuthroizeSettings(AuthorizeSettings settings)
         {
             if (settings == null) {
@@ -70,6 +72,11 @@ namespace Light.WebApi.Core
             permissionType = typeof(T);
         }
 
+        public void SetTestMode()
+        {
+            testMode = true;
+        }
+
         internal AuthorizeOptions Build()
         {
             ICacheAgent cacheAgent;
@@ -83,7 +90,8 @@ namespace Light.WebApi.Core
             var options = new AuthorizeOptions() {
                 CacheAgent = cacheAgent,
                 Encryptor = encryptor,
-                CacheExpiry = cacheExpiry
+                CacheExpiry = cacheExpiry,
+                TestMode = testMode
             };
             return options;
         }

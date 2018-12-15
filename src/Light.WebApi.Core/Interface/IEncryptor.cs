@@ -1,6 +1,6 @@
 ﻿namespace Light.WebApi.Core
 {
-    internal interface IEncryptor
+    public interface IEncryptor
     {
         string Encrypt(string content);
 

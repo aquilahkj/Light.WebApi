@@ -8,5 +8,6 @@
         TokenInfo ParseUserToken(string token);
         void RemoveAuthorize(string client, string userId);
         void SetAuthorize(AccountAuthorizeInfo info);
+        bool TestMode { get; }
     }
 }

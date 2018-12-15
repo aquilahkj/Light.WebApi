@@ -2,7 +2,7 @@
 
 namespace Light.WebApi.Core
 {
-    internal interface ICacheAgent
+    public interface ICacheAgent
     {
         string GetCache(string key);
 

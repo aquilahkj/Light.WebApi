@@ -8,7 +8,8 @@ namespace Light.WebApi.Core
         }
 
         public int? CacheExpiry { get; internal set; }
-        internal ICacheAgent CacheAgent { get; set; }
-        internal IEncryptor Encryptor { get; set; }
+        public ICacheAgent CacheAgent { get; set; }
+        public IEncryptor Encryptor { get; set; }
+        public bool TestMode { get; set; }
     }
 }

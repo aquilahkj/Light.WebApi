@@ -6,13 +6,13 @@ namespace Light.WebApi.Core
 {
     class AuthorizeFilter : IActionFilter
     {
-        private readonly IAuthorizeManagement authorize;
-        private readonly IPermissionManagement permission;
+        private readonly IAuthorizeManagement authorizeManagement;
+        private readonly IPermissionManagement permissionManagement;
 
-        public AuthorizeFilter(IAuthorizeManagement authorize, IPermissionManagement permission)
+        public AuthorizeFilter(IAuthorizeManagement authorizeManagement, IPermissionManagement permissionManagement)
         {
-            this.permission = permission;
-            this.authorize = authorize;
+            this.permissionManagement = permissionManagement;
+            this.authorizeManagement = authorizeManagement;
         }
 
         public void OnActionExecuted(ActionExecutedContext context)
@@ -25,12 +25,19 @@ namespace Light.WebApi.Core
             if (context.ActionDescriptor is ControllerActionDescriptor controllerActionDescriptor) {
                 var authorizeAttributes = controllerActionDescriptor.MethodInfo.GetCustomAttributes(typeof(AuthorizePermissionAttribute), true);
                 if (authorizeAttributes.Length > 0) {
+                    var httpContext = context.HttpContext;
                     var authorizeAttribute = (AuthorizePermissionAttribute)authorizeAttributes[0];
                     var request = context.HttpContext.Request;
                     var tokens = request.Headers["x-token"];
                     string token;
                     if (tokens.Count == 0) {
-                        throw new AuthorizeException(SR.TokenNotExists, string.Empty);
+                        if (authorizeManagement.TestMode) {
+                            httpContext.SetClientInfo("test");
+                            return;
+                        }
+                        else {
+                            throw new AuthorizeException(SR.TokenNotExists, string.Empty);
+                        }
                     }
                     else {
                         token = tokens[0];
@@ -38,21 +45,19 @@ namespace Light.WebApi.Core
                     if (string.IsNullOrEmpty(token) || token.Length < 20) {
                         throw new AuthorizeException(SR.TokenFormatError, token);
                     }
-                    var httpContext = context.HttpContext;
-
                     if (authorizeAttribute.Type == AuthorizeType.System) {
-                        var client = authorize.GetSystemClientId(token);
+                        var client = authorizeManagement.GetSystemClientId(token);
                         if (client == null) {
                             throw new AuthorizeException(SR.TokenError, token);
                         }
                         httpContext.SetClientInfo(client);
                     }
                     else {
-                        var tokenInfo = authorize.ParseUserToken(token);
+                        var tokenInfo = authorizeManagement.ParseUserToken(token);
                         if (tokenInfo == null) {
                             throw new AuthorizeException(SR.UserTokenError, token);
                         }
-                        var account = authorize.GetAuthorize(tokenInfo);
+                        var account = authorizeManagement.GetAuthorize(tokenInfo);
                         if (account == null) {
                             throw new AuthorizeException(SR.UserNotLogin, token);
                         }
@@ -81,7 +86,7 @@ namespace Light.WebApi.Core
                 if (role == "admin") {
                     return true;
                 }
-                if (permission.ValidUserAuthorize(role, action)) {
+                if (permissionManagement.ValidUserAuthorize(role, action)) {
                     return true;
                 }
             }

@@ -12,16 +12,24 @@ namespace Light.WebApi.Core
         private readonly ICacheAgent cache;
         private readonly IEncryptor encryptor;
         private readonly TimeSpan expiryTime;
+        private readonly bool testMode;
 
         public AuthorizeManagement(AuthorizeOptions options)
         {
-            this.cache = options.CacheAgent;
-            this.encryptor = options.Encryptor;
+            cache = options.CacheAgent;
+            encryptor = options.Encryptor;
             if (options.CacheExpiry != null && options.CacheExpiry.Value > 0) {
                 expiryTime = new TimeSpan(0, options.CacheExpiry.Value, 0);
             }
             else {
                 expiryTime = new TimeSpan(0, 30, 0);
+            }
+            testMode = options.TestMode;
+        }
+
+        public bool TestMode {
+            get {
+                return testMode;
             }
         }
 
