@@ -77,7 +77,7 @@ namespace Light.WebApi.Core
                 if (result is ErrorResultModel errorResult) {
                     sb.Append($",errcode:{errorResult.ErrorCode},errmsg:{errorResult.ErrorMsg}");
                 }
-                if (logPostData) {
+                if (logPostData && httpContext.Request.ContentLength.HasValue && httpContext.Request.ContentLength.Value > 0) {
                     string content;
                     httpContext.Request.Body.Position = 0;
                     using (StreamReader sr = new StreamReader(httpContext.Request.Body, Encoding.UTF8)) {
