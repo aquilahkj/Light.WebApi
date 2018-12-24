@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
+    <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="SR.resx">

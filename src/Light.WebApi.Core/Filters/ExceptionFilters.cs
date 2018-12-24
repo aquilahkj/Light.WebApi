@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
@@ -78,8 +79,9 @@ namespace Light.WebApi.Core
                     sb.Append($",errcode:{errorResult.ErrorCode},errmsg:{errorResult.ErrorMsg}");
                 }
                 if (logPostData && httpContext.Request.ContentLength.HasValue && httpContext.Request.ContentLength.Value > 0) {
+                    httpContext.Request.EnableRewind();
+                    httpContext.Request.Body.Seek(0, 0);
                     string content;
-                    httpContext.Request.Body.Position = 0;
                     using (StreamReader sr = new StreamReader(httpContext.Request.Body, Encoding.UTF8)) {
                         content = sr.ReadToEnd();
                     }
