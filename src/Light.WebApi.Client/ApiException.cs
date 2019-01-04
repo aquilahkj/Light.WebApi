@@ -40,6 +40,7 @@ namespace Light.WebApi.Client
 
     public enum ExceptionType
     {
+        Serialize,
         Net,
         Http,
         Parse,
