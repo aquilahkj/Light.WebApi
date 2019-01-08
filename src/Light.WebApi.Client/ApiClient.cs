@@ -1,173 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
-using System.Text;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 
 namespace Light.WebApi.Client
 {
     public class ApiClient
     {
-        const string GET = "GET";
-        const string POST = "POST";
-        const string JSON_CONTENT_TYPE = "application/json";
-        const string POST_JSON_CONTENT_TYPE = "application/json; charset=utf-8";
+        readonly HttpClient client;
 
-        static ApiClient()
+        public ApiClient(HttpClient client)
         {
-            System.Net.ServicePointManager.DefaultConnectionLimit = 2000;
+            this.client = client;
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
-        JsonSerializerSettings settings;
-
-        public ApiClient(string baseAddress)
+        private async Task<T> ReadData<T>(HttpResponseMessage httpResponse) where T : ResultModel
         {
-            //if (baseAddress == null) {
-            //    throw new ArgumentNullException(nameof(baseAddress));
-            //}
-            //if (!baseAddress.StartsWith("http://", StringComparison.Ordinal) && !baseAddress.StartsWith("https://", StringComparison.Ordinal)) {
-            //    throw new ArgumentException(nameof(baseAddress) + " format error");
-            //}
-            this.baseAddress = baseAddress;
-
-            settings = new JsonSerializerSettings();
-            settings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-        }
-
-        readonly string baseAddress;
-        int? timeout;
-        string token;
-
-        public void SetToken(string token)
-        {
-            this.token = token;
-        }
-
-        public void SetTimeout(int timeout)
-        {
-            if (timeout > 0) {
-                this.timeout = timeout * 1000;
+            if (!httpResponse.IsSuccessStatusCode) {
+                throw new ApiException(ExceptionType.Http, (int)httpResponse.StatusCode, httpResponse.ReasonPhrase);
             }
-        }
-
-        private HttpWebRequest CreateHttpRequest(string url, string method)
-        {
-            HttpWebRequest request = WebRequest.Create(baseAddress + url) as HttpWebRequest;
-            request.ServicePoint.ConnectionLimit = 2000;
-            request.AllowAutoRedirect = true;
-            request.Method = method;
-            request.Accept = JSON_CONTENT_TYPE;
-            request.KeepAlive = true;
-            request.Proxy = null;
-            if (timeout != null) {
-                request.Timeout = timeout.Value;
-            }
-            if (!string.IsNullOrEmpty(token)) {
-                request.Headers.Add("x-token", token);
-            }
-            return request;
-        }
-
-        private string SerializeObject(object value)
-        {
-            if (value == null) {
-                return "{}";
-            }
+            T item;
             try {
-                var content = JsonConvert.SerializeObject(value, settings);
-                return content;
-            }
-            catch (Exception ex) {
-                throw new ApiException(ExceptionType.Serialize, 0, ex.Message);
-            }
-        }
-
-
-        private string PostAndGetResponseString(HttpWebRequest request, string input)
-        {
-            HttpWebResponse response = null;
-            Stream stream = null;
-            try {
-                request.ContentType = POST_JSON_CONTENT_TYPE;
-                stream = request.GetRequestStream();
-                byte[] buffer = Encoding.UTF8.GetBytes(input);
-                stream.Write(buffer, 0, buffer.Length);
-                response = request.GetResponse() as HttpWebResponse;
-                if (response.StatusCode != HttpStatusCode.OK) {
-                    throw new ApiException(ExceptionType.Http, (int)response.StatusCode, response.StatusDescription);
-                }
-                string content;
-                Encoding encoding;
-                if (string.IsNullOrEmpty(response.CharacterSet)) {
-                    encoding = Encoding.GetEncoding(response.CharacterSet);
-                }
-                else {
-                    encoding = Encoding.UTF8;
-                }
-                using (var reader = new StreamReader(response.GetResponseStream(), encoding)) {
-                    content = reader.ReadToEnd();
-                }
-                return content;
-            }
-            catch (ApiException ex) {
-                throw ex;
-            }
-            catch (Exception ex) {
-                throw new ApiException(ExceptionType.Net, 0, ex.Message, ex);
-            }
-            finally {
-                if (stream != null) {
-                    stream.Dispose();
-                }
-                if (response != null) {
-                    response.Dispose();
-                }
-            }
-        }
-
-
-        private string GetResponseString(HttpWebRequest request)
-        {
-            HttpWebResponse response = null;
-            try {
-                response = request.GetResponse() as HttpWebResponse;
-                if (response.StatusCode != HttpStatusCode.OK) {
-                    throw new ApiException(ExceptionType.Http, (int)response.StatusCode, response.StatusDescription);
-                }
-                string content;
-                Encoding encoding;
-                if (string.IsNullOrEmpty(response.CharacterSet)) {
-                    encoding = Encoding.GetEncoding(response.CharacterSet);
-                }
-                else {
-                    encoding = Encoding.UTF8;
-                }
-                using (var reader = new StreamReader(response.GetResponseStream(), encoding)) {
-                    content = reader.ReadToEnd();
-                }
-                return content;
-            }
-            catch (ApiException ex) {
-                throw ex;
-            }
-            catch (Exception ex) {
-                throw new ApiException(ExceptionType.Net, 0, ex.Message, ex);
-            }
-            finally {
-                if (response != null) {
-                    response.Dispose();
-                }
-            }
-        }
-
-
-        private void ParseVoid(string content)
-        {
-            ResultModel item;
-            try {
-                item = JsonConvert.DeserializeObject<ResultModel>(content, settings);
+                item = await httpResponse.Content.ReadAsAsync<T>();
             }
             catch (Exception ex) {
                 throw new ApiException(ExceptionType.Parse, 0, ex.Message, ex);
@@ -178,60 +37,29 @@ namespace Light.WebApi.Client
             if (item.StatusCode == 0) {
                 throw new ApiException(ExceptionType.Result, item.ErrorCode.Value, item.ErrorMsg);
             }
+            return item;
         }
 
-        private T ParseSingle<T>(string content)
+        private async Task ParseResponseAsync(HttpResponseMessage httpResponse)
         {
-            ResultModel<T> item;
-            try {
-                item = JsonConvert.DeserializeObject<ResultModel<T>>(content, settings);
-            }
-            catch (Exception ex) {
-                throw new ApiException(ExceptionType.Parse, 0, ex.Message, ex);
-            }
-            if (item == null) {
-                throw new ApiException(ExceptionType.Parse, 1, SR.ResponseContentError);
-            }
-            if (item.StatusCode == 0) {
-                throw new ApiException(ExceptionType.Result, item.ErrorCode.Value, item.ErrorMsg);
-            }
+            var item = await ReadData<ResultModel>(httpResponse);
+        }
+
+        private async Task<T> ParseResponseToSingleAsync<T>(HttpResponseMessage httpResponse)
+        {
+            var item = await ReadData<ResultModel<T>>(httpResponse);
             return item.Data;
         }
 
-        private List<T> ParseList<T>(string content)
+        private async Task<List<T>> ParseResponseToListAsync<T>(HttpResponseMessage httpResponse)
         {
-            ResultModel<List<T>> item;
-            try {
-                item = JsonConvert.DeserializeObject<ResultModel<List<T>>>(content, settings);
-            }
-            catch (Exception ex) {
-                throw new ApiException(ExceptionType.Parse, 0, ex.Message, ex);
-            }
-            if (item == null) {
-                throw new ApiException(ExceptionType.Parse, 1, SR.ResponseContentError);
-            }
-            if (item.StatusCode == 0) {
-                throw new ApiException(ExceptionType.Result, item.ErrorCode.Value, item.ErrorMsg);
-            }
+            var item = await ReadData<ResultModel<List<T>>>(httpResponse);
             return item.Data != null ? item.Data : new List<T>();
         }
 
-
-        private PageList<T> ParsePage<T>(string content)
+        private async Task<PageList<T>> ParseResponseToPageAsync<T>(HttpResponseMessage httpResponse)
         {
-            ResultModel<List<T>> item;
-            try {
-                item = JsonConvert.DeserializeObject<ResultModel<List<T>>>(content, settings);
-            }
-            catch (Exception ex) {
-                throw new ApiException(ExceptionType.Parse, 0, ex.Message, ex);
-            }
-            if (item == null) {
-                throw new ApiException(ExceptionType.Parse, 1, SR.ResponseContentError);
-            }
-            if (item.StatusCode == 0) {
-                throw new ApiException(ExceptionType.Result, item.ErrorCode.Value, item.ErrorMsg);
-            }
+            var item = await ReadData<ResultModel<List<T>>>(httpResponse);
             var list = item.Data != null ? item.Data : new List<T>();
             var count = item.TotalCount != null ? item.TotalCount.Value : list.Count;
             return new PageList<T>(list, count);
@@ -240,7 +68,17 @@ namespace Light.WebApi.Client
         private string CombineUri(string requestUri, object value)
         {
             if (value != null) {
-                var ps = ParameterConvertor.Convert(value);
+                TypeCode code = Type.GetTypeCode(value.GetType());
+                string ps;
+                if (code == TypeCode.Object) {
+                    ps = ParameterConvertor.Convert(value);
+                }
+                else if (code == TypeCode.String) {
+                    ps = value as string;
+                }
+                else {
+                    ps = value.ToString();
+                }
                 if (!string.IsNullOrEmpty(ps)) {
                     if (requestUri.EndsWith("?", StringComparison.InvariantCultureIgnoreCase)) {
                         requestUri += ps;
@@ -256,87 +94,219 @@ namespace Light.WebApi.Client
             return requestUri;
         }
 
-        public T GetSingle<T>(string requestUri, object value)
+        private async Task<HttpResponseMessage> Internal_GetAsync(string requestUri, object value, CancellationToken cancellationToken)
         {
             requestUri = CombineUri(requestUri, value);
-            var request = CreateHttpRequest(requestUri, GET);
-            string content = GetResponseString(request);
-            return ParseSingle<T>(content);
+            HttpResponseMessage response;
+            try {
+                response = await client.GetAsync(requestUri, cancellationToken);
+            }
+            catch (Exception ex) {
+                throw new ApiException(ExceptionType.Net, 0, ex.Message, ex);
+            }
+            return response;
         }
 
-        public List<T> GetList<T>(string requestUri, object value)
+        public async Task<T> GetAsync<T>(string requestUri, CancellationToken cancellationToken = default(CancellationToken))
         {
-            requestUri = CombineUri(requestUri, value);
-            var request = CreateHttpRequest(requestUri, GET);
-            string content = GetResponseString(request);
-            return ParseList<T>(content);
+            var response = await Internal_GetAsync(requestUri, null, cancellationToken);
+            return await ParseResponseToSingleAsync<T>(response);
         }
 
-        public PageList<T> GetPage<T>(string requestUri, object value)
+        public T Get<T>(string requestUri)
         {
-            requestUri = CombineUri(requestUri, value);
-            var request = CreateHttpRequest(requestUri, GET);
-            string content = GetResponseString(request);
-            return ParsePage<T>(content);
-
+            try {
+                return GetAsync<T>(requestUri).Result;
+            }
+            catch (AggregateException ex) {
+                throw ex.InnerException;
+            }
         }
 
-        public T GetSingle<T>(string requestUri)
+        public async Task<List<T>> GetListAsync<T>(string requestUri, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return GetSingle<T>(requestUri, null);
+            var response = await Internal_GetAsync(requestUri, null, cancellationToken);
+            return await ParseResponseToListAsync<T>(response);
         }
 
         public List<T> GetList<T>(string requestUri)
         {
-            return GetList<T>(requestUri, null);
+            try {
+                return GetListAsync<T>(requestUri).Result;
+            }
+            catch (AggregateException ex) {
+                throw ex.InnerException;
+            }
+        }
+
+        public async Task<PageList<T>> GetPageAsync<T>(string requestUri, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var response = await Internal_GetAsync(requestUri, null, cancellationToken);
+            return await ParseResponseToPageAsync<T>(response);
         }
 
         public PageList<T> GetPage<T>(string requestUri)
         {
-            return GetPage<T>(requestUri, null);
+            try {
+                return GetPageAsync<T>(requestUri).Result;
+            }
+            catch (AggregateException ex) {
+                throw ex.InnerException;
+            }
+        }
+
+        public async Task<T> GetAsync<T>(string requestUri, object value, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var response = await Internal_GetAsync(requestUri, value, cancellationToken);
+            return await ParseResponseToSingleAsync<T>(response);
+        }
+
+        public T Get<T>(string requestUri, object value)
+        {
+            try {
+                return GetAsync<T>(requestUri, value).Result;
+            }
+            catch (AggregateException ex) {
+                throw ex.InnerException;
+            }
+        }
+
+        public async Task<List<T>> GetListAsync<T>(string requestUri, object value, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var response = await Internal_GetAsync(requestUri, value, cancellationToken);
+            return await ParseResponseToListAsync<T>(response);
+        }
+
+        public List<T> GetList<T>(string requestUri, object value)
+        {
+            try {
+                return GetListAsync<T>(requestUri, value).Result;
+            }
+            catch (AggregateException ex) {
+                throw ex.InnerException;
+            }
+        }
+
+        public async Task<PageList<T>> GetPageAsync<T>(string requestUri, object value, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var response = await Internal_GetAsync(requestUri, value, cancellationToken);
+            return await ParseResponseToPageAsync<T>(response);
+        }
+
+        public PageList<T> GetPage<T>(string requestUri, object value)
+        {
+            try {
+                return GetPageAsync<T>(requestUri, value).Result;
+            }
+            catch (AggregateException ex) {
+                throw ex.InnerException;
+            }
+        }
+
+        private async Task<HttpResponseMessage> Internal_PostAsync(string requestUri, object value, CancellationToken cancellationToken)
+        {
+            HttpResponseMessage response;
+            try {
+                if (value != null) {
+                    response = await client.PostAsJsonAsync(requestUri, value, cancellationToken);
+                }
+                else {
+                    response = await client.PostAsJsonAsync(requestUri, "{}", cancellationToken);
+                }
+            }
+            catch (Exception ex) {
+                throw new ApiException(ExceptionType.Net, 0, ex.Message, ex);
+            }
+            return response;
+        }
+
+        public async Task PostAsync(string requestUri, object value, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var response = await Internal_PostAsync(requestUri, value, cancellationToken);
+            await ParseResponseAsync(response);
         }
 
         public void Post(string requestUri, object value)
         {
-            var request = CreateHttpRequest(requestUri, POST);
-            var input = SerializeObject(value);
-            string content = PostAndGetResponseString(request, input);
-            ParseVoid(content);
+            try {
+                PostAsync(requestUri, value).Wait();
+            }
+            catch (AggregateException ex) {
+                throw ex.InnerException;
+            }
         }
 
-        public T PostAndGetSingle<T>(string requestUri, object value)
+        public async Task<T> PostAndGetAsync<T>(string requestUri, object value, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var request = CreateHttpRequest(requestUri, POST);
-            var input = SerializeObject(value);
-            string content = PostAndGetResponseString(request, input);
-            return ParseSingle<T>(content);
+            var response = await Internal_PostAsync(requestUri, value, cancellationToken);
+            return await ParseResponseToSingleAsync<T>(response);
+        }
+
+        public T PostAndGet<T>(string requestUri, object value)
+        {
+            try {
+                return PostAndGetAsync<T>(requestUri, value).Result;
+            }
+            catch (AggregateException ex) {
+                throw ex.InnerException;
+            }
+        }
+
+        public async Task<List<T>> PostAndGetListAsync<T>(string requestUri, object value, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var response = await Internal_PostAsync(requestUri, value, cancellationToken);
+            return await ParseResponseToListAsync<T>(response);
         }
 
         public List<T> PostAndGetList<T>(string requestUri, object value)
         {
-            var request = CreateHttpRequest(requestUri, POST);
-            var input = SerializeObject(value);
-            string content = PostAndGetResponseString(request, input);
-            return ParseList<T>(content);
+            try {
+                return PostAndGetListAsync<T>(requestUri, value).Result;
+            }
+            catch (AggregateException ex) {
+                throw ex.InnerException;
+            }
+        }
+
+        public async Task<PageList<T>> PostAndGetPageAsync<T>(string requestUri, object value, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var response = await Internal_PostAsync(requestUri, value, cancellationToken);
+            return await ParseResponseToPageAsync<T>(response);
         }
 
         public PageList<T> PostAndGetPage<T>(string requestUri, object value)
         {
-            var request = CreateHttpRequest(requestUri, POST);
-            var input = SerializeObject(value);
-            string content = PostAndGetResponseString(request, input);
-            return ParsePage<T>(content);
+            try {
+                return PostAndGetPageAsync<T>(requestUri, value).Result;
+            }
+            catch (AggregateException ex) {
+                throw ex.InnerException;
+            }
         }
 
+        public async Task PostAsync(string requestUri, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            await PostAsync(requestUri, null, cancellationToken);
+        }
 
         public void Post(string requestUri)
         {
             Post(requestUri, null);
         }
 
-        public T PostAndGetSingle<T>(string requestUri)
+        public async Task<T> PostAndGetAsync<T>(string requestUri, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return PostAndGetSingle<T>(requestUri, null);
+            return await PostAndGetAsync<T>(requestUri, null, cancellationToken);
+        }
+
+        public T PostAndGet<T>(string requestUri)
+        {
+            return PostAndGet<T>(requestUri, null);
+        }
+
+        public async Task<List<T>> PostAndGetListAsync<T>(string requestUri, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return await PostAndGetListAsync<T>(requestUri, null, cancellationToken);
         }
 
         public List<T> PostAndGetList<T>(string requestUri)
@@ -344,9 +314,139 @@ namespace Light.WebApi.Client
             return PostAndGetList<T>(requestUri, null);
         }
 
+        public async Task<PageList<T>> PostAndGetPageAsync<T>(string requestUri, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return await PostAndGetPageAsync<T>(requestUri, null, cancellationToken);
+        }
+
         public PageList<T> PostAndGetPage<T>(string requestUri)
         {
             return PostAndGetPage<T>(requestUri, null);
+        }
+
+        private async Task<HttpResponseMessage> Internal_PutAsync(string requestUri, object value, CancellationToken cancellationToken)
+        {
+            if (value == null) {
+                throw new ApiException(ExceptionType.Net, 0, "value is null");
+            }
+
+            HttpResponseMessage response;
+            try {
+                response = await client.PutAsJsonAsync(requestUri, value, cancellationToken);
+            }
+            catch (Exception ex) {
+                throw new ApiException(ExceptionType.Net, 0, ex.Message, ex);
+            }
+            return response;
+        }
+
+        public async Task PutAsync(string requestUri, object value, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var response = await Internal_PutAsync(requestUri, value, cancellationToken);
+            await ParseResponseAsync(response);
+        }
+
+        public void Put(string requestUri, object value)
+        {
+            try {
+                PutAsync(requestUri, value).Wait();
+            }
+            catch (AggregateException ex) {
+                throw ex.InnerException;
+            }
+        }
+
+        public async Task<T> PutAndGetAsync<T>(string requestUri, object value, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var response = await Internal_PutAsync(requestUri, value, cancellationToken);
+            return await ParseResponseToSingleAsync<T>(response);
+        }
+
+        public T PutAndGet<T>(string requestUri, object value)
+        {
+            try {
+                return PutAndGetAsync<T>(requestUri, value).Result;
+            }
+            catch (AggregateException ex) {
+                throw ex.InnerException;
+            }
+        }
+
+        //public async Task<List<T>> PutAndGetListAsync<T>(string requestUri, object value, CancellationToken cancellationToken = default(CancellationToken))
+        //{
+        //    var response = await Internal_PutAsync(requestUri, value, cancellationToken);
+        //    return await ParseResponseToListAsync<T>(response);
+        //}
+
+        //public List<T> PutAndGetList<T>(string requestUri, object value)
+        //{
+        //    try {
+        //        return PutAndGetListAsync<T>(requestUri, value).Result;
+        //    }
+        //    catch (AggregateException ex) {
+        //        throw ex.InnerException;
+        //    }
+        //}
+
+        //public async Task<PageList<T>> PutAndGetPageAsync<T>(string requestUri, object value, CancellationToken cancellationToken = default(CancellationToken))
+        //{
+        //    var response = await Internal_PutAsync(requestUri, value, cancellationToken);
+        //    return await ParseResponseToPageAsync<T>(response);
+        //}
+
+        //public PageList<T> PutAndGetPage<T>(string requestUri, object value)
+        //{
+        //    try {
+        //        return PutAndGetPageAsync<T>(requestUri, value).Result;
+        //    }
+        //    catch (AggregateException ex) {
+        //        throw ex.InnerException;
+        //    }
+        //}
+
+        private async Task<HttpResponseMessage> Internal_DeleteAsync(string requestUri, object value, CancellationToken cancellationToken)
+        {
+            requestUri = CombineUri(requestUri, value);
+            HttpResponseMessage response;
+            try {
+                response = await client.DeleteAsync(requestUri, cancellationToken);
+            }
+            catch (Exception ex) {
+                throw new ApiException(ExceptionType.Net, 0, ex.Message, ex);
+            }
+            return response;
+        }
+
+        public async Task DeleteAsync(string requestUri, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var response = await Internal_DeleteAsync(requestUri, null, cancellationToken);
+            await ParseResponseAsync(response);
+        }
+
+        public void Delete(string requestUri)
+        {
+            try {
+                DeleteAsync(requestUri).Wait();
+            }
+            catch (AggregateException ex) {
+                throw ex.InnerException;
+            }
+        }
+
+        public async Task DeleteAsync(string requestUri, object value, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var response = await Internal_DeleteAsync(requestUri, value, cancellationToken);
+            await ParseResponseAsync(response);
+        }
+
+        public void Delete(string requestUri, object value)
+        {
+            try {
+                DeleteAsync(requestUri, value).Wait();
+            }
+            catch (AggregateException ex) {
+                throw ex.InnerException;
+            }
         }
     }
 }
