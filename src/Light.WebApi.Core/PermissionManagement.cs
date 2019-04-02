@@ -5,6 +5,7 @@ namespace Light.WebApi.Core
 {
     class PermissionManagement : IPermissionManagement
     {
+        private readonly IPermissionModule module;
         HashSet<string> hash;
 
         public PermissionManagement()
@@ -16,6 +17,7 @@ namespace Light.WebApi.Core
         {
             var array = module.GetRolePermissionInfos();
             SetRolePermissions(array);
+            this.module = module;
         }
 
         public void SetRolePermissions(RolePermission[] rolePermissions)
@@ -27,7 +29,7 @@ namespace Light.WebApi.Core
             hash = nhash;
         }
 
-        public bool ValidUserAuthorize(string role, string action)
+        public bool ValidRoleAuthorize(string role, string action)
         {
             if (hash == null) {
                 return false;

@@ -86,7 +86,7 @@ namespace Light.WebApi.Core
                 if (role == "admin") {
                     return true;
                 }
-                if (permissionManagement.ValidUserAuthorize(role, action)) {
+                if (permissionManagement.ValidRoleAuthorize(role, action)) {
                     return true;
                 }
             }
