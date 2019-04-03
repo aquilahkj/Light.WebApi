@@ -52,6 +52,11 @@ namespace Light.WebApi.Core
                     logPostData = false;
                     result = ResultModel.CreateErrorResult(-2, permissionException.Message);
                 }
+                else if (exception is VerifyException verifyException) {
+                    logFullException = false;
+                    logPostData = false;
+                    result = ResultModel.CreateErrorResult(-3, verifyException.Message);
+                }
                 else {
                     logPostData = true;
                     logFullException = true;

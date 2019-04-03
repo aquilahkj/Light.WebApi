@@ -3,10 +3,6 @@ namespace Light.WebApi.Core
 {
     public class AuthorizeOptionsBuilder
     {
-        public AuthorizeOptionsBuilder()
-        {
-        }
-
         int cacheType;
 
         string redisConfig;
@@ -14,8 +10,6 @@ namespace Light.WebApi.Core
         string tokenKey;
 
         int? cacheExpiry;
-
-        Type permissionType;
 
         bool testMode = false;
 
@@ -67,38 +61,29 @@ namespace Light.WebApi.Core
             this.cacheExpiry = expiryTime;
         }
 
-        public void SetPermissionModule<T>() where T : IPermissionModule
-        {
-            permissionType = typeof(T);
-        }
-
         public void SetTestMode()
         {
             testMode = true;
         }
 
-        internal AuthorizeOptions Build()
+        IAuthorizeData authorizeData;
+
+        public void SetAuthorizeData(IAuthorizeData authorizeData)
         {
-            ICacheAgent cacheAgent;
-            if (cacheType == 1) {
-                cacheAgent = new RedisCacheAgent(redisConfig);
-            }
-            else {
-                cacheAgent = new MemoryCacheAgent();
-            }
-            IEncryptor encryptor = new Encryptor(tokenKey);
-            var options = new AuthorizeOptions() {
-                CacheAgent = cacheAgent,
-                Encryptor = encryptor,
-                CacheExpiry = cacheExpiry,
-                TestMode = testMode
-            };
-            return options;
+            this.authorizeData = authorizeData;
         }
 
-        internal Type GetPermissionType()
+        internal AuthorizeOptions Build()
         {
-            return permissionType;
+            var options = new AuthorizeOptions() {
+                CacheType = cacheType,
+                TokenKey = tokenKey,
+                RedisConfig = redisConfig,
+                CacheExpiry = cacheExpiry,
+                TestMode = testMode,
+                AuthorizeData = authorizeData
+            };
+            return options;
         }
     }
 }

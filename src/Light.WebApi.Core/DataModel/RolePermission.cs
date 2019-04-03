@@ -4,6 +4,10 @@
     {
         public string Role { get; set; }
 
-        public string Permission { get; set; }
+        public string PermissionCode { get; set; }
+
+        public string PermissionName { get; set; }
+
+        public string Action { get; set; }
     }
 }

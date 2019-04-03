@@ -112,5 +112,17 @@ namespace Light.WebApi.Core {
                 return ResourceManager.GetString("UserNotPermission", resourceCulture);
             }
         }
+        
+        internal static string AccountNotExistsOrPasswordError {
+            get {
+                return ResourceManager.GetString("AccountNotExistsOrPasswordError", resourceCulture);
+            }
+        }
+        
+        internal static string UserNotAllowUseThisClient {
+            get {
+                return ResourceManager.GetString("UserNotAllowUseThisClient", resourceCulture);
+            }
+        }
     }
 }

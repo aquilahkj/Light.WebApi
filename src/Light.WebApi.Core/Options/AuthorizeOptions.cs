@@ -1,15 +1,18 @@
 ﻿using System;
 namespace Light.WebApi.Core
 {
-    public class AuthorizeOptions
+    class AuthorizeOptions
     {
-        public AuthorizeOptions()
-        {
-        }
+        public int? CacheExpiry { get; set; }
 
-        public int? CacheExpiry { get; internal set; }
-        public ICacheAgent CacheAgent { get; set; }
-        public IEncryptor Encryptor { get; set; }
         public bool TestMode { get; set; }
+
+        public int CacheType { get; set; }
+
+        public string RedisConfig { get; set; }
+
+        public string TokenKey { get; set; }
+
+        public IAuthorizeData AuthorizeData { get; set; }
     }
 }

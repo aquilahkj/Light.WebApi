@@ -45,4 +45,10 @@
     <data name="UserNotPermission">
         <value>用户无该操作权限</value>
     </data>
+    <data name="AccountNotExistsOrPasswordError">
+        <value>账号不存在或密码错误</value>
+    </data>
+    <data name="UserNotAllowUseThisClient">
+        <value>用户不允许使用该客户端</value>
+    </data>
 </root>

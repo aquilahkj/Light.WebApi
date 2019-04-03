@@ -7,11 +7,9 @@ namespace Light.WebApi.Core
     class AuthorizeFilter : IActionFilter
     {
         private readonly IAuthorizeManagement authorizeManagement;
-        private readonly IPermissionManagement permissionManagement;
 
-        public AuthorizeFilter(IAuthorizeManagement authorizeManagement, IPermissionManagement permissionManagement)
+        public AuthorizeFilter(IAuthorizeManagement authorizeManagement)
         {
-            this.permissionManagement = permissionManagement;
             this.authorizeManagement = authorizeManagement;
         }
 
@@ -69,7 +67,7 @@ namespace Light.WebApi.Core
                         if (authorizeAttribute.Type == AuthorizeType.UserAction) {
                             var action = context.HttpContext.Request.Path;
                             if (!ValidUserPermission(account.Roles, action)) {
-                                throw new PermissionException(SR.UserNotPermission, account.UserName, action);
+                                throw new PermissionException(SR.UserNotPermission, account.Account, action);
                             }
                         }
                     }
@@ -86,7 +84,7 @@ namespace Light.WebApi.Core
                 if (role == "admin") {
                     return true;
                 }
-                if (permissionManagement.ValidRoleAuthorize(role, action)) {
+                if (authorizeManagement.ValidRoleAuthorize(role, action)) {
                     return true;
                 }
             }

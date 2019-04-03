@@ -23,17 +23,48 @@ namespace Microsoft.Extensions.DependencyInjection
             var builder = new AuthorizeOptionsBuilder();
             action?.Invoke(builder);
             var options = builder.Build();
-            var management = new AuthorizeManagement(options);
-            services.AddSingleton<IAuthorizeManagement>(management);
-            services.AddSingleton<IPermissionManagement, PermissionManagement>();
-            Type permissionType = builder.GetPermissionType();
-            if (permissionType != null) {
-                services.AddSingleton(typeof(IPermissionModule), permissionType);
+            if (options.AuthorizeData != null) {
+                services.AddSingleton(options.AuthorizeData);
             }
+            else {
+                var admin = new AdminUser(0, "admin", "Spuer Admin", "admin");
+                IAuthorizeData authorizeData = new BasicAuthorizeData(new AdminUser[] { admin });
+                services.AddSingleton(authorizeData);
+            }
+            services.AddSingleton<IAuthorizeManagement, AuthorizeManagement>();
             services.AddMvc(x => {
                 x.Filters.Add<AuthorizeFilter>();
             });
             return services;
         }
+
+        public static AuthorizeOptionsBuilder UseBasicAuthorizeData(this AuthorizeOptionsBuilder builder, string account, string password, string userName = null)
+        {
+            if (string.IsNullOrEmpty(account)) {
+                throw new ArgumentException("value is null", nameof(account));
+            }
+
+            if (string.IsNullOrEmpty(password)) {
+                throw new ArgumentException("value is null", nameof(password));
+            }
+
+            var admin = new AdminUser(0, account, userName ?? account, password);
+            IAuthorizeData authorizeData = new BasicAuthorizeData(new AdminUser[] { admin });
+            builder.SetAuthorizeData(authorizeData);
+            return builder;
+        }
+
+        //public static IServiceCollection AddAuthorize<T>(this IServiceCollection services, Action<AuthorizeOptionsBuilder> action = null) where T : class, IAuthorizeManagement, new()
+        //{
+        //    var builder = new AuthorizeOptionsBuilder();
+        //    action?.Invoke(builder);
+        //    var options = builder.Build();
+        //    services.AddSingleton(options);
+        //    services.AddSingleton<IAuthorizeManagement, T>();
+        //    services.AddMvc(x => {
+        //        x.Filters.Add<AuthorizeFilter>();
+        //    });
+        //    return services;
+        //}
     }
 }
