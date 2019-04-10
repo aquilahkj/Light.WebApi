@@ -3,7 +3,7 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace Light.WebApi.Core
 {
-    public class MemoryCacheAgent : ICacheAgent
+    class MemoryCacheAgent : ICacheAgent
     {
         readonly MemoryCache _client;
 

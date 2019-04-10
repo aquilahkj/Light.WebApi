@@ -26,7 +26,7 @@ namespace Light.WebApi.Core
                     var httpContext = context.HttpContext;
                     var authorizeAttribute = (AuthorizePermissionAttribute)authorizeAttributes[0];
                     var request = context.HttpContext.Request;
-                    var tokens = request.Headers["x-token"];
+                    var tokens = request.Headers["X-Token"];
                     string token;
                     if (tokens.Count == 0) {
                         if (authorizeManagement.TestMode) {
@@ -62,7 +62,7 @@ namespace Light.WebApi.Core
                         if (account.Guid != tokenInfo.Guid) {
                             throw new AuthorizeException(SR.UserHasLogin, token);
                         }
-                        httpContext.SetUserInfo(account.LoginId, account.UserName, account.Client);
+                        httpContext.SetUserInfo(account);
 
                         if (authorizeAttribute.Type == AuthorizeType.UserAction) {
                             var action = context.HttpContext.Request.Path;

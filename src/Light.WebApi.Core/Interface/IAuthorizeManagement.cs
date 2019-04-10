@@ -7,7 +7,7 @@
         /// </summary>
         /// <returns>The password.</returns>
         /// <param name="password">Password.</param>
-        string EncryptPassword(string password);
+        //string EncryptPassword(string password);
         /// <summary>
         /// Creates the user token.
         /// </summary>
@@ -37,7 +37,7 @@
         /// </summary>
         /// <param name="client">Client.</param>
         /// <param name="userId">User identifier.</param>
-        void RemoveAuthorize(string client, string userId);
+        void RemoveAuthorize(string userId, string client);
         /// <summary>
         /// Sets the authorize.
         /// </summary>
@@ -67,7 +67,7 @@
         /// <param name="account">Account.</param>
         /// <param name="password">Password.</param>
         /// <param name="client">Client.</param>
-        string VerifyLoginUser(string account, string password, string client);
+        LoginResult VerifyLoginUser(string account, string password, string client);
         /// <summary>
         /// Valids the role authorize.
         /// </summary>
@@ -80,7 +80,7 @@
         /// </summary>
         /// <returns>The user permission.</returns>
         /// <param name="roles">Roles.</param>
-        string[] GetUserPermission(string[] roles);
+        string[] CalculatePermission(string[] roles);
         /// <summary>
         /// Resets the permission.
         /// </summary>

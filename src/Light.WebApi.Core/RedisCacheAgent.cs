@@ -4,7 +4,7 @@ using Microsoft.Extensions.Caching.Redis;
 
 namespace Light.WebApi.Core
 {
-    public class RedisCacheAgent : ICacheAgent
+    class RedisCacheAgent : ICacheAgent
     {
         readonly RedisCache _client;
 

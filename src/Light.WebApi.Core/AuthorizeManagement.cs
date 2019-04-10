@@ -17,9 +17,9 @@ namespace Light.WebApi.Core
         private readonly bool testMode;
         readonly IAuthorizeData authorizeData;
 
-        public AuthorizeManagement(AuthorizeOptions options, IAuthorizeData authorizeData)
+        public AuthorizeManagement(AuthorizeOptions options)
         {
-            this.authorizeData = authorizeData;
+            this.authorizeData = options.AuthorizeData;
             if (options.CacheType == 1) {
                 cache = new RedisCacheAgent(options.RedisConfig);
             }
@@ -49,16 +49,16 @@ namespace Light.WebApi.Core
         /// </summary>
         /// <returns>The password.</returns>
         /// <param name="password">Password.</param>
-        public string EncryptPassword(string password)
-        {
-            MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
-            byte[] encryptedBytes = md5.ComputeHash(Encoding.ASCII.GetBytes(password));
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < encryptedBytes.Length; i++) {
-                sb.AppendFormat("{0:x2}", encryptedBytes[i]);
-            }
-            return sb.ToString();
-        }
+        //public string EncryptPassword(string password)
+        //{
+        //    MD5CryptoServiceProvider md5 = new MD5CryptoServiceProvider();
+        //    byte[] encryptedBytes = md5.ComputeHash(Encoding.ASCII.GetBytes(password));
+        //    StringBuilder sb = new StringBuilder();
+        //    for (int i = 0; i < encryptedBytes.Length; i++) {
+        //        sb.AppendFormat("{0:x2}", encryptedBytes[i]);
+        //    }
+        //    return sb.ToString();
+        //}
 
         public string GetSystemClientId(string token)
         {
@@ -77,7 +77,7 @@ namespace Light.WebApi.Core
             }
         }
 
-        public void RemoveAuthorize(string client, string userId)
+        public void RemoveAuthorize(string userId, string client)
         {
             cache.RemoveCache(USER_PREFIX + "_" + client + "_" + userId);
         }
@@ -127,22 +127,26 @@ namespace Light.WebApi.Core
             return authorizeData.GetUserInfo(userId);
         }
 
-        public string[] GetUserRoles(int userId)
-        {
-            return authorizeData.GetUserRoles(userId);
-        }
+        //public string[] GetUserRoles(int userId)
+        //{
+        //    return authorizeData.GetUserRoles(userId);
+        //}
 
-        public string VerifyLoginUser(string account, string password, string client)
+        public LoginResult VerifyLoginUser(string account, string password, string client)
         {
-            password = EncryptPassword(password);
+            var result = new LoginResult();
             var user = authorizeData.VerifyUser(account, password);
             if (user == null) {
-                throw new VerifyException(SR.AccountNotExistsOrPasswordError);
+                result.Result = 0;
+                result.Message = SR.AccountNotExistsOrPasswordError;
+                return result;
             }
             if (!authorizeData.VerifyUserClient(user.UserId, client)) {
-                throw new VerifyException(SR.UserNotAllowUseThisClient);
+                result.Result = 0;
+                result.Message = SR.UserNotAllowUseThisClient;
+                return result;
             }
-            var roles = authorizeData.GetUserRoles(user.UserId);
+            //var roles = authorizeData.GetUserRoles(user.UserId);
             var authorize = new AccountAuthorizeInfo() {
                 LoginId = user.UserId.ToString(),
                 Account = user.Account,
@@ -150,11 +154,13 @@ namespace Light.WebApi.Core
                 Client = client,
                 CreateTime = DateTime.Now,
                 Guid = Guid.NewGuid().ToString("N"),
-                Roles = roles
+                Roles = user.Roles
             };
-            var token = CreateUserToken(authorize);
+            result.Result = 1;
+            result.Message = SR.LoginSuccess;
+            result.Token = CreateUserToken(authorize);
             SetAuthorize(authorize);
-            return token;
+            return result;
         }
 
         readonly object locker = new object();
@@ -192,7 +198,7 @@ namespace Light.WebApi.Core
             return roleAction.Contains($"{role}_{action}");
         }
 
-        public string[] GetUserPermission(string[] roles)
+        public string[] CalculatePermission(string[] roles)
         {
             InitialPermissionData();
             var permissions = new HashSet<string>();
@@ -216,7 +222,5 @@ namespace Light.WebApi.Core
                 rolePermission = null;
             }
         }
-
-
     }
 }

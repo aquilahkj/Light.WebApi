@@ -5,7 +5,7 @@ namespace Light.WebApi.Core
 {
     public class ExceptonTypeModel
     {
-        public Func<ExceptionContext, Exception, ResultModel> ExceptionFunc;
+        public Func<ExceptionContext, Exception, ErrorResult> ExceptionFunc;
 
         public bool LogFullException;
 

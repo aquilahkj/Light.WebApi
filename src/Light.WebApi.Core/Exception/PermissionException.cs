@@ -22,7 +22,7 @@ namespace Light.WebApi.Core
 
         public PermissionException(string message, string account, string action) : base(message)
         {
-            this.action = account;
+            this.account = account;
             this.action = action;
         }
     }

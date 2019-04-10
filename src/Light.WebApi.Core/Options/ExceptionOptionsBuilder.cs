@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace Light.WebApi.Core
 {
+    /// <summary>
+    /// Exception options builder.
+    /// </summary>
     public class ExceptionOptionsBuilder
     {
         public ExceptionOptionsBuilder()
@@ -16,9 +19,16 @@ namespace Light.WebApi.Core
 
         bool exceptionLogger;
 
-        public void RegisterType<T>(Func<ExceptionContext, T, ResultModel> func, bool logFullException = false, bool logPostData = false) where T : Exception
+        /// <summary>
+        /// Registers the type.
+        /// </summary>
+        /// <param name="func">Func.</param>
+        /// <param name="logFullException">If set to <c>true</c> log full exception.</param>
+        /// <param name="logPostData">If set to <c>true</c> log post data.</param>
+        /// <typeparam name="T">The 1st type parameter.</typeparam>
+        public void RegisterType<T>(Func<ExceptionContext, T, ErrorResult> func, bool logFullException = false, bool logPostData = false) where T : Exception
         {
-            var nfunc = new Func<ExceptionContext, Exception, ResultModel>((arg1, arg2) => {
+            var nfunc = new Func<ExceptionContext, Exception, ErrorResult>((arg1, arg2) => {
                 return func.Invoke(arg1, arg2 as T);
             });
             var model = new ExceptonTypeModel() {
@@ -30,6 +40,13 @@ namespace Light.WebApi.Core
             typeList.Add(t);
         }
 
+        /// <summary>
+        /// Registers the code.
+        /// </summary>
+        /// <param name="errCode">Error code.</param>
+        /// <param name="logFullException">If set to <c>true</c> log full exception.</param>
+        /// <param name="logPostData">If set to <c>true</c> log post data.</param>
+        /// <typeparam name="T">The 1st type parameter.</typeparam>
         public void RegisterCode<T>(int errCode, bool logFullException = false, bool logPostData = false) where T : Exception
         {
             var model = new ExceptonCodeModel() {

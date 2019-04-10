@@ -2,44 +2,39 @@
 namespace Light.WebApi.Core
 {
     /// <summary>
-    /// User info.
+    /// User informations.
     /// </summary>
-    public class UserInfo
+    public class UserDetailInfo
     {
         /// <summary>
-        /// Gets or sets the user identifier.
-        /// </summary>
-        /// <value>The user identifier.</value>
-        public int UserId { get; set; }
-
-        /// <summary>
-        /// Gets or sets the account.
+        /// User Account
         /// </summary>
         /// <value>The account.</value>
         public string Account { get; set; }
-
         /// <summary>
-        /// Gets or sets the name of the user.
+        /// User Name
         /// </summary>
         /// <value>The name of the user.</value>
-        public string UserName { get; set; }
-
+        public string Name { get; set; }
         /// <summary>
-        /// Gets or sets the avatar.
+        /// User Avatar
         /// </summary>
         /// <value>The avatar.</value>
         public string Avatar { get; set; }
-
         /// <summary>
-        /// Gets or sets the description.
+        /// User Introduction
         /// </summary>
         /// <value>The description.</value>
-        public string Description { get; set; }
-
+        public string Introduction { get; set; }
         /// <summary>
-        /// Gets or sets the roles.
+        /// User Roles
         /// </summary>
         /// <value>The roles.</value>
         public string[] Roles { get; set; }
+        /// <summary>
+        /// User Permissions
+        /// </summary>
+        /// <value>The permissions.</value>
+        public string[] Permissions { get; set; }
     }
 }

@@ -3,14 +3,19 @@ using System.Collections.Generic;
 
 namespace Light.WebApi.Core
 {
-    public class BasicAuthorizeData : IAuthorizeData
+    class BasicAuthorizeData : IAuthorizeData
     {
-        Dictionary<int, AdminUser> dict = new Dictionary<int, AdminUser>();
+        readonly Dictionary<int, AdminUser> dict = new Dictionary<int, AdminUser>();
+
+        readonly Dictionary<string, AdminUser> dict2 = new Dictionary<string, AdminUser>();
 
         public BasicAuthorizeData(AdminUser[] users)
         {
             foreach (var item in users) {
-                dict[item.UserId] = item;
+                dict.Add(item.UserId, item);
+            }
+            foreach (var item in users) {
+                dict2.Add(item.Account, item);
             }
         }
 
@@ -26,7 +31,9 @@ namespace Light.WebApi.Core
                     UserId = userId,
                     Account = user.Account,
                     UserName = user.UserName,
-                    Avatar = string.Empty
+                    Avatar = string.Empty,
+                    Description = string.Empty,
+                    Roles = new string[] { "admin" }
                 };
                 return info;
             }
@@ -37,17 +44,25 @@ namespace Light.WebApi.Core
 
         public string[] GetUserRoles(int userId)
         {
-            if (dict.ContainsKey(userId)) {
-                return new string[] { "admin" };
-            }
-            else {
-                return new string[0];
-            }
+            return new string[] { "admin" };
         }
 
         public UserInfo VerifyUser(string account, string password)
         {
-            throw new NotImplementedException();
+            if (dict2.TryGetValue(account, out AdminUser user)) {
+                if (user.Password == password) {
+                    var info = new UserInfo() {
+                        UserId = user.UserId,
+                        Account = user.Account,
+                        UserName = user.UserName,
+                        Avatar = string.Empty,
+                        Description = string.Empty,
+                        Roles = new string[] { "admin" }
+                    };
+                    return info;
+                }
+            }
+            return null;
         }
 
         public bool VerifyUserClient(int userId, string client)

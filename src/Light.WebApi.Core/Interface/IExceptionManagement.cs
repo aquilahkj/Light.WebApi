@@ -8,5 +8,6 @@ namespace Light.WebApi.Core
         bool TryGetExceptionCode(Type type, out ExceptonCodeModel model);
         bool TryGetExceptionTypeFunc(Type type, out ExceptonTypeModel model);
         bool EnableLogger { get; }
+        bool EnableShowDetail { get; }
     }
 }

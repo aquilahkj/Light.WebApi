@@ -23,14 +23,11 @@ namespace Microsoft.Extensions.DependencyInjection
             var builder = new AuthorizeOptionsBuilder();
             action?.Invoke(builder);
             var options = builder.Build();
-            if (options.AuthorizeData != null) {
-                services.AddSingleton(options.AuthorizeData);
-            }
-            else {
+            if (options.AuthorizeData == null) {
                 var admin = new AdminUser(0, "admin", "Spuer Admin", "admin");
-                IAuthorizeData authorizeData = new BasicAuthorizeData(new AdminUser[] { admin });
-                services.AddSingleton(authorizeData);
+                options.AuthorizeData = new BasicAuthorizeData(new AdminUser[] { admin });
             }
+            services.AddSingleton(options);
             services.AddSingleton<IAuthorizeManagement, AuthorizeManagement>();
             services.AddMvc(x => {
                 x.Filters.Add<AuthorizeFilter>();
@@ -53,6 +50,8 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.SetAuthorizeData(authorizeData);
             return builder;
         }
+
+       
 
         //public static IServiceCollection AddAuthorize<T>(this IServiceCollection services, Action<AuthorizeOptionsBuilder> action = null) where T : class, IAuthorizeManagement, new()
         //{

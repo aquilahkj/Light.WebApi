@@ -9,8 +9,17 @@ namespace Light.WebApi.Core
         readonly Dictionary<Type, ExceptonTypeModel> exceptionTypes;
         readonly Dictionary<Type, ExceptonCodeModel> exceptionCodes;
         readonly bool enableLogger;
+        readonly bool enableShowDetail;
 
-        public bool EnableLogger {
+        public bool EnableShowDetail
+        {
+            get {
+                return enableShowDetail;
+            }
+        }
+
+        public bool EnableLogger
+        {
             get {
                 return enableLogger;
             }
@@ -21,6 +30,7 @@ namespace Light.WebApi.Core
             exceptionTypes = options.ExceptionTypes;
             exceptionCodes = options.ExceptionCodes;
             enableLogger = options.EnableLogger;
+            enableShowDetail = options.EnableShowDetail;
         }
 
         public bool TryGetExceptionTypeFunc(Type type, out ExceptonTypeModel model)

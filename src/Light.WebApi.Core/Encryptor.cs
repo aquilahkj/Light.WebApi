@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Light.WebApi.Core
 {
-    public class Encryptor : IEncryptor
+    class Encryptor : IEncryptor
     {
         private static byte[] Ivs = { 0x12, 0x34, 0x56, 0x78, 0x90, 0xAB, 0xCD, 0xEF };
 

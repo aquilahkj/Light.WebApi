@@ -124,5 +124,17 @@ namespace Light.WebApi.Core {
                 return ResourceManager.GetString("UserNotAllowUseThisClient", resourceCulture);
             }
         }
+        
+        internal static string RequestModelError {
+            get {
+                return ResourceManager.GetString("RequestModelError", resourceCulture);
+            }
+        }
+        
+        internal static string LoginSuccess {
+            get {
+                return ResourceManager.GetString("LoginSuccess", resourceCulture);
+            }
+        }
     }
 }

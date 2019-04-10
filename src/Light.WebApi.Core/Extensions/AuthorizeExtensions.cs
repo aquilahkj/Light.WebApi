@@ -8,24 +8,43 @@ namespace Light.WebApi.Core
     {
         const string UID = "UID";
 
+        const string ACCOUNT = "ACCOUNT";
+
         const string USERNAME = "USERNAME";
 
         const string CLIENTID = "CLIENTID";
 
-        public static void SetUserInfo(this HttpContext context, string userId, string userName, string clientId)
+        const string ROLES = "ROLES";
+
+        //public static void SetUserInfo(this HttpContext context, string userId, string account, string userName, string clientId)
+        //{
+        //    var claims = new Claim[] {
+        //        new Claim(UID, userId),
+        //        new Claim(ACCOUNT, account),
+        //        new Claim(USERNAME, userName),
+        //        new Claim(CLIENTID, clientId)
+        //    };
+        //    context.User.AddIdentity(new ClaimsIdentity(claims, "customize", "user", "user"));
+        //}
+
+        public static void SetUserInfo(this HttpContext context, AccountAuthorizeInfo account)
         {
             var claims = new Claim[] {
-                new Claim(UID, userId),
-                new Claim(USERNAME, userName),
-                new Claim(CLIENTID, clientId)
+                new Claim(UID, account.LoginId),
+                new Claim(ACCOUNT, account.Account),
+                new Claim(USERNAME, account.UserName),
+                new Claim(CLIENTID, account.Client),
+                new Claim(ROLES, string.Join(',',account.Roles))
             };
             context.User.AddIdentity(new ClaimsIdentity(claims, "customize", "user", "user"));
         }
+
 
         public static void SetClientInfo(this HttpContext context, string clientId)
         {
             var claims = new Claim[] {
                 new Claim(UID, clientId),
+                new Claim(ACCOUNT, clientId),
                 new Claim(USERNAME, clientId),
                 new Claim(CLIENTID, clientId)
             };
@@ -38,6 +57,15 @@ namespace Light.WebApi.Core
                 return null;
             }
             var claim = context.User.FindFirst(x => x.Type == UID);
+            return claim?.Value;
+        }
+
+        public static string GetAccount(this HttpContext context)
+        {
+            if (context.User == null) {
+                return null;
+            }
+            var claim = context.User.FindFirst(x => x.Type == ACCOUNT);
             return claim?.Value;
         }
 
@@ -57,6 +85,15 @@ namespace Light.WebApi.Core
             }
             var claim = context.User.FindFirst(x => x.Type == CLIENTID);
             return claim?.Value;
+        }
+
+        public static string[] GetRoles(this HttpContext context)
+        {
+            if (context.User == null) {
+                return null;
+            }
+            var claim = context.User.FindFirst(x => x.Type == ROLES);
+            return claim?.Value.Split(',');
         }
     }
 }
